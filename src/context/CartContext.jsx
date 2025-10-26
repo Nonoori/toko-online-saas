@@ -22,7 +22,13 @@ const getLocalData = (key) => {
 export function CartProvider({ children }) {
   // Ambil keranjang DAN storeId dari local storage
   const [cartItems, setCartItems] = useState(getLocalData('shoppingCart') || []);
-  const [currentStoreId, setCurrentStoreId] = useState(getLocalData('currentStoreId') || null);
+
+// --- TAMBAHKAN LOG DI SINI ---
+  const initialStoreId = getLocalData('currentStoreId');
+  console.log("CartContext Init: Reading 'currentStoreId' from LS:", initialStoreId);
+  const [currentStoreId, setCurrentStoreId] = useState(initialStoreId || null);
+  // -----------------------------
+
 
   // Simpan KEDUA state ke Local Storage saat berubah
   useEffect(() => {
@@ -30,6 +36,7 @@ export function CartProvider({ children }) {
   }, [cartItems]);
 
   useEffect(() => {
+    console.log("CartContext Effect: Saving 'currentStoreId' to LS:", currentStoreId); // Log saat menyimpan
     localStorage.setItem('currentStoreId', JSON.stringify(currentStoreId));
   }, [currentStoreId]);
 
@@ -82,8 +89,9 @@ export function CartProvider({ children }) {
   
   // Fungsi untuk mengosongkan keranjang (akan kita pakai setelah checkout)
   const clearCart = () => {
+    console.log("clearCart called."); // Tambahkan log jika perlu
     setCartItems([]);
-    //setCurrentStoreId(null);
+    // Pastikan TIDAK ada setCurrentStoreId(null);
   };
 
   const updateQuantity = (productId, newQuantity) => {

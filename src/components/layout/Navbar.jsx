@@ -2,20 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useMatch } from 'react-router-dom';
-import { useCart } from '../../context/CartContext'; // Butuh currentStoreId
+import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
 
 function Navbar() {
-  const { itemCount, currentStoreId } = useCart(); // Ambil currentStoreId dari keranjang
+  const { itemCount, currentStoreId } = useCart(); // Ambil ID toko terakhir dari keranjang
   const { currentUser } = useAuth();
-  const { storeId: urlStoreId } = useParams(); // Ambil storeId dari URL jika ada, rename ke urlStoreId
+  const { storeId: urlStoreId } = useParams(); // Ambil ID toko dari URL (jika ada)
   const matchRootRoute = useMatch('/'); // Cek jika kita di halaman root '/'
 
-  // Tentukan ID toko mana yang relevan untuk ditampilkan di branding
-  // Prioritas 1: ID dari URL (jika di halaman /toko/...)
-  // Prioritas 2: ID dari keranjang (toko terakhir yang relevan)
+  // Tentukan ID toko yang relevan: Prioritaskan URL, fallback ke CartContext
   const relevantStoreId = urlStoreId || currentStoreId;
 
   const [storeInfo, setStoreInfo] = useState({ logo: null, name: null });
@@ -23,8 +21,8 @@ function Navbar() {
 
   // useEffect untuk ambil info toko berdasarkan relevantStoreId
   useEffect(() => {
-    setStoreInfo({ logo: null, name: null }); // Reset dulu
-    // Hanya fetch jika ada ID toko yang relevan DAN kita tidak di halaman root
+    setStoreInfo({ logo: null, name: null }); // Reset
+    // Hanya fetch jika ada ID toko relevan DAN kita BUKAN di root
     if (relevantStoreId && !matchRootRoute) {
       setLoadingStoreInfo(true);
       const fetchStoreInfo = async () => {
@@ -37,32 +35,37 @@ function Navbar() {
               name: docSnap.data().namaToko
             });
           }
-        } catch (error) { console.error(error); }
+        } catch (error) { console.error("Error fetching store info:", error); }
         finally { setLoadingStoreInfo(false); }
       };
       fetchStoreInfo();
     } else {
-      setLoadingStoreInfo(false); // Tidak perlu fetch, pastikan loading selesai
+      setLoadingStoreInfo(false); // Tidak fetch, pastikan loading false
     }
-  // Jalankan ulang jika ID toko relevan berubah atau kita pindah ke/dari root
-  }, [relevantStoreId, matchRootRoute]);
+  }, [relevantStoreId, matchRootRoute]); // Dependensi
 
   // --- Logika Branding Dinamis BARU ---
-  let brandLink = "/"; // Default: SuperAdmin LP
-  let brandContent = "TokoSaaS"; // Default: SuperAdmin Brand
+  let brandLink = "/"; // Default ke SuperAdmin LP
+  let brandContent = "TokoSaaS"; // Default brand SuperAdmin
 
-  // Kondisi 1: JIKA BUKAN di halaman root DAN ada info toko yang relevan...
-  if (!matchRootRoute && !loadingStoreInfo && storeInfo.name && relevantStoreId) {
-      brandLink = `/toko/${relevantStoreId}`; // Link ke toko terakhir/saat ini
-      if (storeInfo.logo) {
-          brandContent = <img src={storeInfo.logo} alt={storeInfo.name} style={brandImageStyle} />;
+  // Kondisi: JIKA TIDAK di root ('/') DAN ada ID toko yang relevan...
+  if (!matchRootRoute && relevantStoreId) {
+      brandLink = `/toko/${relevantStoreId}`; // Link selalu ke toko relevan
+      // Tampilkan nama/logo jika sudah dimuat, jika tidak tampilkan loading/default
+      if (loadingStoreInfo) {
+          brandContent = '...'; // Indikator loading
+      } else if (storeInfo.name) {
+          brandContent = storeInfo.logo
+              ? <img src={storeInfo.logo} alt={storeInfo.name} style={brandImageStyle} />
+              : storeInfo.name;
       } else {
-          brandContent = storeInfo.name;
+          // Fallback jika fetch gagal tapi ID ada (jarang terjadi)
+          brandContent = 'Toko';
       }
   }
-  // Kondisi 2: JIKA di halaman root ATAU tidak ada info toko relevan,
-  // biarkan menggunakan nilai default ("TokoSaaS" link ke "/")
+  // JIKA di root ('/'), gunakan default ("TokoSaaS" link ke "/")
   // --- Akhir Logika Branding ---
+
 
 // 5. Add Logout Handler
   const handleLogout = async () => {
@@ -79,7 +82,8 @@ function Navbar() {
     <nav style={navStyle}>
       <Link to={brandLink} style={brandStyle}>
         {/* Tampilkan loading hanya jika relevan */}
-        {!matchRootRoute && loadingStoreInfo ? '...' : brandContent}
+        {/* !matchRootRoute && loadingStoreInfo ? '...' : brandContent */}
+                {brandContent}
       </Link>
 
       
@@ -107,6 +111,8 @@ function Navbar() {
     </nav>
   );
 }
+
+
 
 
 // --- CSS ---
