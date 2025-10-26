@@ -1,0 +1,105 @@
+/* src/pages/dashboard/DashboardPage.module.css */
+
+.dashboardContainer {
+  padding: 30px 40px; /* Lebih banyak padding */
+  background-color: #f8f9fa; /* Warna latar belakang lembut */
+  min-height: calc(100vh - 60px); /* Sesuaikan jika tinggi Navbar berbeda */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Font bersih */
+}
+
+.header h1 {
+  font-size: 2.5em; /* Judul lebih besar */
+  color: #212529; /* Warna gelap solid */
+  margin-bottom: 10px;
+  font-weight: 600; /* Sedikit lebih tebal */
+}
+
+.userInfo {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #dee2e6; /* Garis pemisah halus */
+  font-size: 0.95em;
+  color: #495057; /* Warna teks sekunder */
+}
+
+.userInfo p {
+  margin-bottom: 8px; /* Jarak antar baris info */
+}
+
+.userInfo strong {
+  color: #343a40; /* Warna teks utama untuk data penting */
+}
+
+.etalaseLink {
+  display: inline-block;
+  margin-top: 15px;
+  color: #007bff; /* Warna link biru standar */
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease; /* Efek hover halus */
+}
+
+.etalaseLink:hover {
+  color: #0056b3; /* Warna link saat hover */
+  text-decoration: underline;
+}
+
+.navigation {
+  margin: 30px 0;
+  background-color: #ffffff; /* Latar putih untuk nav */
+  padding: 15px 20px;
+  border-radius: 8px; /* Sudut membulat */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); /* Shadow halus */
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 30px; /* Jarak lebih besar antar menu */
+}
+
+.navLink {
+  text-decoration: none;
+  color: #495057; /* Warna link menu */
+  font-weight: 500;
+  padding: 10px 0; /* Padding vertikal untuk area klik */
+  position: relative;
+  transition: color 0.2s ease;
+}
+
+.navLink::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #007bff;
+  transition: width 0.3s ease;
+}
+
+.navLink:hover {
+  color: #007bff; /* Warna saat hover */
+}
+
+.navLink:hover::after {
+  width: 100%; /* Efek garis bawah saat hover */
+}
+
+.logoutButton {
+  margin-top: 30px;
+  padding: 10px 20px;
+  background-color: #dc3545; /* Warna merah logout */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s ease;
+}
+
+.logoutButton:hover {
+  background-color: #c82333; /* Warna merah lebih gelap saat hover */
+}
