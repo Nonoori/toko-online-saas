@@ -180,7 +180,7 @@ function CustomerProfilePage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/'); // Arahkan ke home setelah logout
+      navigate('/login'); // Arahkan ke home setelah logout
     } catch (err) {
       console.error('Error logging out:', err);
     }

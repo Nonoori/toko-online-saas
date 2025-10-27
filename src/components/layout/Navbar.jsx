@@ -71,11 +71,11 @@ function Navbar() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      navigate('/login'); // Redirect to login after logout
-    } catch (error) {
-      console.error("Error signing out:", error);
+      navigate('/login');
+    } catch (err) {
+      console.error("Error logging out:", err);
     }
-  };
+  }
 
 
   return (

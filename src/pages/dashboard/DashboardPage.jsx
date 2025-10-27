@@ -98,17 +98,17 @@ return <div className={styles.dashboardContainer}>Memuat data dashboard...</div>
           <li><Link to="/dashboard/pesanan" className={styles.navLink}>Pesanan Masuk</Link></li>
           <li><Link to="/dashboard/laporan" className={styles.navLink}>Laporan Keuangan</Link></li>
           <li><Link to="/dashboard/ongkir" className={styles.navLink}>Pengaturan Ongkir</Link></li>
-
+          <li><Link to="/dashboard/voucher" className={styles.navLink}>Voucher Diskon</Link></li>
 
           {/* Tambahkan link menu lain di sini */}
         </ul>
         <ul className={styles.navList}> {/* <-- Gunakan class */}
-          <li><Link to="/dashboard" className={styles.navLink}>Home</Link></li>
-          <li><Link to="/dashboard/produk" className={styles.navLink}>Manajemen Produk</Link></li>
-          <li><Link to="/dashboard/pengaturan" className={styles.navLink}>Pengaturan Toko</Link></li>
-          <li><Link to="/dashboard/pesanan" className={styles.navLink}>Pesanan Masuk</Link></li>
-          <li><Link to="/dashboard/laporan" className={styles.navLink}>Laporan Keuangan</Link></li>
-          <li><Link to="/dashboard/ongkir" className={styles.navLink}>Pengaturan Ongkir</Link></li>
+          <li><Link to="/dashboard" className={styles.navLink}></Link></li>
+          <li><Link to="/dashboard/produk" className={styles.navLink}></Link></li>
+          <li><Link to="/dashboard/pengaturan" className={styles.navLink}></Link></li>
+          <li><Link to="/dashboard/pesanan" className={styles.navLink}></Link></li>
+          <li><Link to="/dashboard/laporan" className={styles.navLink}></Link></li>
+          <li><Link to="/dashboard/ongkir" className={styles.navLink}></Link></li>
 
           
           {/* Tambahkan link menu lain di sini */}

@@ -34,6 +34,7 @@ import PesananPage from './pages/dashboard/PesananPage';
 import AdminOrderDetailPage from './pages/dashboard/AdminOrderDetailPage'; 
 import LaporanPage from './pages/dashboard/LaporanPage'; 
 import PengaturanOngkirPage from './pages/dashboard/PengaturanOngkirPage'; 
+import VoucherPage from './pages/dashboard/VoucherPage'; 
 
 // --- Halaman Super Admin ---
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
@@ -81,9 +82,17 @@ function App() {
           element={ <CustomerProtectedRoute> <InvoicePage /> </CustomerProtectedRoute> }
         />
 
-        {/* Rute Keranjang (Tamu & Pelanggan) */}
-        <Route path="/keranjang" element={<CartPage />} />
-
+        {/* --- UBAH RUTE INI --- */}
+        <Route
+          path="/keranjang"
+          element={
+            <CustomerProtectedRoute>
+              <CartPage />
+            </CustomerProtectedRoute>
+          }
+        />
+        {/* ------------------- */}
+        
         {/* Rute Etalase (Tamu & Pelanggan) */}
         <Route path="/toko/:storeId" element={<StoreFrontPage />} />
 
@@ -125,6 +134,7 @@ function App() {
       <Route path="/dashboard/pesanan/:orderId" element={ <AdminProtectedRoute> <AdminOrderDetailPage /> </AdminProtectedRoute> } />
       <Route path="/dashboard/laporan" element={ <AdminProtectedRoute> <LaporanPage /> </AdminProtectedRoute> } />
       <Route path="/dashboard/ongkir" element={ <AdminProtectedRoute> <PengaturanOngkirPage /> </AdminProtectedRoute> } />
+      <Route path="/dashboard/voucher" element={ <AdminProtectedRoute> <VoucherPage /> </AdminProtectedRoute> } />
 
 
 

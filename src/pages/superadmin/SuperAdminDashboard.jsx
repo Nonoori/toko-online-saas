@@ -2,27 +2,28 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { db } from '../../firebaseConfig';
-import { 
-  collection, 
-  onSnapshot, 
-  doc, 
+import { db, auth } from '../../firebaseConfig';
+import {
+  collection,
+  onSnapshot,
+  doc,
   updateDoc,
-  Timestamp // Impor Timestamp untuk update tanggal
+  Timestamp
 } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
 
 function SuperAdminDashboard() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // 1. Ambil SEMUA toko dari koleksi 'stores'
+  // useEffect untuk ambil data toko (tidak berubah)
   useEffect(() => {
     setLoading(true);
-    // Kita ambil semua dari koleksi 'stores'
     const q = collection(db, "stores");
-    
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const storesList = [];
       querySnapshot.forEach((doc) => {
@@ -35,22 +36,17 @@ function SuperAdminDashboard() {
       setError("Gagal mengambil data toko.");
       setLoading(false);
     });
-
-    return () => unsubscribe(); // Cleanup listener
+    return () => unsubscribe();
   }, []);
 
-  // 2. Fungsi untuk mengubah status toko
+  // Fungsi untuk mengubah status toko (tidak berubah)
   const handleUpdateStatus = async (storeId, newStatus) => {
     if (!window.confirm(`Anda yakin ingin mengubah status toko ini menjadi "${newStatus}"?`)) {
       return;
     }
-    
     const storeDocRef = doc(db, "stores", storeId);
     try {
-      // Security Rules akan mengecek (isSuperAdmin() == true) di sini
-      await updateDoc(storeDocRef, {
-        status: newStatus
-      });
+      await updateDoc(storeDocRef, { status: newStatus });
       alert("Status berhasil diperbarui!");
     } catch (err) {
       console.error("Gagal update status: ", err);
@@ -58,42 +54,58 @@ function SuperAdminDashboard() {
     }
   };
 
-  // 3. Fungsi untuk memperpanjang trial (Contoh: +30 hari)
+  // Fungsi untuk memperpanjang trial (STRUKTUR DIPERBAIKI)
   const handleExtendTrial = async (storeId, currentExpiryDate) => {
-    const daysToAdd = 30; // Atau ambil dari input
-    
-    // Konversi Timestamp Firestore ke Date JS, atau gunakan Date.now() jika tidak ada
+    const daysToAdd = 30;
     const startDate = currentExpiryDate ? currentExpiryDate.toDate() : new Date();
     const newExpiryDate = new Date(startDate.setDate(startDate.getDate() + daysToAdd));
 
-    if (!window.confirm(`Perpanjang trial toko ini hingga ${newExpiryDate.toLocaleDateString()}?`)) {
+    if (!window.confirm(`Perpanjang trial toko ini hingga ${newExpiryDate.toLocaleDateString('id-ID')}?`)) { // Gunakan locale
       return;
     }
-    
+
+    // Blok try...catch SEKARANG ADA DI DALAM handleExtendTrial
     const storeDocRef = doc(db, "stores", storeId);
     try {
       await updateDoc(storeDocRef, {
-        expiryDate: Timestamp.fromDate(newExpiryDate) // Kirim kembali sebagai Timestamp
+        expiryDate: Timestamp.fromDate(newExpiryDate)
       });
       alert("Trial berhasil diperpanjang!");
     } catch (err) {
       console.error("Gagal perpanjang trial: ", err);
       alert("Error: " + err.message);
     }
-  };
+  }; // <-- Kurung kurawal penutup untuk handleExtendTrial
+
+  // --- Fungsi Logout (SEKARANG DI LUAR handleExtendTrial) ---
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (err) {
+      console.error("Error logging out:", err);
+    }
+  }; // <-- Kurung kurawal penutup untuk handleLogout
 
 
+  // --- Tampilan Loading ---
   if (loading) {
-    return <div style={{padding: '20px'}}>Memuat data...</div>;
+    return <div style={{padding: '20px'}}>Memuat data...</div>; // Beri return JSX yang valid
   }
-  
+
+  // --- Tampilan Utama ---
   return (
     <div style={{ padding: '20px' }}>
       <h1>Dashboard Super Admin</h1>
-      <p>Selamat datang, **{currentUser.email}**. Anda mengelola {stores.length} toko.</p>
-      
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      
+      {/* Cek currentUser sebelum akses email */}
+      <p>Selamat datang, <strong>{currentUser?.email || 'Admin'}</strong>. Anda mengelola {stores.length} toko.</p>
+      <button onClick={handleLogout} style={logoutButtonStyle}>
+        Logout
+      </button>
+
+      {error && <p style={{ color: 'red', marginTop: '15px' }}>{error}</p>}
+
+    
       <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
         <thead>
           <tr style={{ backgroundColor: '#f4f4f4' }}>
@@ -163,5 +175,17 @@ const buttonStyle = (color) => ({
   borderRadius: '4px',
   cursor: 'pointer'
 });
+
+const logoutButtonStyle = {
+  background: '#dc3545', // Warna merah
+  border: 'none',
+  color: 'white',
+  cursor: 'pointer',
+  fontSize: '0.9em',
+  padding: '8px 15px',
+  borderRadius: '4px',
+  marginTop: '5px', // Beri sedikit jarak
+  marginBottom: '20px'
+};
 
 export default SuperAdminDashboard;

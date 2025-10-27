@@ -1,23 +1,29 @@
 // src/pages/store/StoreFrontPage.jsx
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom'; // <-- 1. Impor useNavigate
+// 1. Import hook yang diperlukan
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { db } from '../../firebaseConfig';
-import { 
-  doc, getDoc, collection, query, where, getDocs 
+import {
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  getDocs
 } from 'firebase/firestore';
 import { formatRupiah } from '../../utils/formatRupiah';
-import { useCart } from '../../context/CartContext'; // <-- 2. Impor useCart lengkap
-//import { useAuth } from '../../context/AuthContext'; // <-- 2. Impor Auth
+import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext'; // <-- Impor Auth
 
 function StoreFrontPage() {
-  const { storeId } = useParams(); 
-  const navigate = useNavigate(); // <-- 3. Panggil hook navigasi
-  const location = useLocation(); // <-- 3. Untuk mengingat halaman ini
+  const { storeId } = useParams();
+  const { addToCart } = useCart();
+  const { currentUser } = useAuth(); // <-- Dapatkan status user
+  const navigate = useNavigate();   // <-- Untuk redirect
+  const location = useLocation(); // <-- Untuk halaman asal
 
-  // 4. Ambil data lengkap dari keranjang
-  const { cartItems, currentStoreId, clearCart, addToCart } = useCart();
-
+  // ... (State storeInfo, products, loading, error tidak berubah) ...
   const [storeInfo, setStoreInfo] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +51,9 @@ function StoreFrontPage() {
         return; // Hentikan eksekusi useEffect ini
       }
     }
+    
+    setLoading(true); setError(''); setStoreInfo(null); setProducts([]);
+
     // --- Akhir Logika Baru ---
 
 
@@ -94,26 +103,35 @@ function StoreFrontPage() {
   // 6. Tambahkan dependensi baru ke useEffect
   }, [storeId, currentStoreId, cartItems, clearCart, navigate]); 
 
-  // --- 5. Buat fungsi handle klik keranjang ---
+// --- 2. Fungsi Handle Klik Keranjang (DIPERBARUI) ---
   const handleAddToCartClick = (product) => {
-    if (currentUser && currentUser.role === 'customer') {
-      // KASUS 1: Dia adalah Pelanggan
+    if (currentUser) {
+      // Jika SUDAH LOGIN (asumsi dia customer, karena proteksi lain mencegah admin)
       addToCart(product);
+      // Opsional: Tampilkan notifikasi "Ditambahkan ke keranjang"
+      alert(`${product.namaProduk} ditambahkan ke keranjang!`);
     } else {
-      // KASUS 2: Dia adalah Tamu (atau Admin)
-      // Kita paksa dia ke halaman login
-      navigate('/login', { 
-        state: { 
-          // Kirim pesan & halaman asal
-          message: "Silakan login sebagai pelanggan untuk mulai berbelanja.",
-          from: location 
-        } 
+      // Jika TAMU (belum login)
+      // Simpan info produk yang mau ditambahkan ke sessionStorage
+      // sessionStorage lebih cocok dari localStorage karena otomatis hilang saat tab ditutup
+      try {
+        sessionStorage.setItem('pendingCartItem', JSON.stringify(product));
+        console.log("Item disimpan ke sessionStorage:", product);
+      } catch (e) {
+        console.error("Gagal menyimpan item ke sessionStorage:", e);
+        // Tetap lanjutkan redirect meskipun gagal simpan
+      }
+
+      // Arahkan ke halaman login
+      navigate('/login', {
+        state: {
+          from: location, // Kirim halaman etalase sebagai 'from'
+          message: "Silakan login atau daftar sebagai pelanggan untuk menambahkan item ke keranjang."
+        }
       });
     }
   };
-  
-  //  (Tampilan UI tidak berubah) 
-  
+  // ---------------------------------------------  
   if (loading) {
     return <div style={{ padding: '20px' }}>Memuat toko...</div>;
   }

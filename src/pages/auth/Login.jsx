@@ -5,17 +5,20 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from '../../firebaseConfig';
 import { doc, getDoc } from 'firebase/firestore';
+import { useCart } from '../../context/CartContext'; 
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+  const navigate = useNavigate();
   const location = useLocation();
+  const { addToCart } = useCart(); 
+
   const message = location.state?.message;
   const fromPage = location.state?.from;
-
+  
   // --- FUNGSI HELPER BARU UNTUK CEK STATUS TOKO ---
   const checkStoreStatus = async (storeId) => {
     const storeDocRef = doc(db, "stores", storeId);
@@ -72,32 +75,32 @@ function Login() {
 
         // --- 3. LOGIKA PENGALIHAN BERBASIS PERAN ---
         
-        if (role === 'storeAdmin' || role === 'superAdmin') {
-          
-          // --- Validasi untuk storeAdmin ---
-          if (role === 'storeAdmin') {
-            const statusCheck = await checkStoreStatus(userData.storeId);
-            if (!statusCheck.ok) {
-              // Jika status TIDAK OK (trial habis/nonaktif)
-              setError(statusCheck.message); // Tampilkan pesan error
-              await signOut(auth); // Logout paksa
-              setLoading(false);
-              return; // Hentikan proses
+        // --- 3. Logika Tambah Item Tertunda (HANYA UNTUK CUSTOMER) ---
+        if (role === 'customer') {
+          try {
+            const pendingItemJSON = sessionStorage.getItem('pendingCartItem');
+            if (pendingItemJSON) {
+              const pendingItem = JSON.parse(pendingItemJSON);
+              console.log("Menambahkan item tertunda ke keranjang:", pendingItem);
+              addToCart(pendingItem); // Tambahkan ke keranjang
+              sessionStorage.removeItem('pendingCartItem'); // Hapus dari session storage
             }
-          }
-          
-          // Arahkan Admin (yang lolos) ke Dashboard
-          const destination = (role === 'superAdmin') ? '/superadmin' : '/dashboard';
-          window.location.assign(destination);
-
-        } else {
-          // Arahkan Pelanggan
-          if (fromPage) {
-            window.location.assign(fromPage.pathname); // Kembalikan ke keranjang/etalase
-          } else {
-            window.location.assign('/profil'); // Default ke profil
+          } catch (e) {
+            console.error("Gagal memproses item tertunda:", e);
+            sessionStorage.removeItem('pendingCartItem'); // Hapus jika error
           }
         }
+        // -----------------------------------------------------
+
+        // 4. Arahkan berdasarkan Peran (Redirect)
+        if (role === 'storeAdmin' || role === 'superAdmin') {
+          window.location.assign(role === 'superAdmin' ? '/superadmin' : '/dashboard');
+        } else { // Customer
+          // Arahkan kembali ke halaman asal (misal /keranjang) atau default ke /profil
+          window.location.assign(fromPage ? fromPage.pathname : '/profil');
+        }
+
+     
       } else {
         setError('Profil pengguna tidak ditemukan. Melakukan logout...');
         await signOut(auth);
