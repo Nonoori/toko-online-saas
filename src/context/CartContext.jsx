@@ -25,7 +25,7 @@ export function CartProvider({ children }) {
 
 // --- TAMBAHKAN LOG DI SINI ---
   const initialStoreId = getLocalData('currentStoreId');
-  console.log("CartContext Init: Reading 'currentStoreId' from LS:", initialStoreId);
+  //console.log("CartContext Init: Reading 'currentStoreId' from LS:", initialStoreId);
   const [currentStoreId, setCurrentStoreId] = useState(initialStoreId || null);
   // -----------------------------
 
@@ -36,7 +36,7 @@ export function CartProvider({ children }) {
   }, [cartItems]);
 
   useEffect(() => {
-    console.log("CartContext Effect: Saving 'currentStoreId' to LS:", currentStoreId); // Log saat menyimpan
+    //console.log("CartContext Effect: Saving 'currentStoreId' to LS:", currentStoreId); // Log saat menyimpan
     localStorage.setItem('currentStoreId', JSON.stringify(currentStoreId));
   }, [currentStoreId]);
 
@@ -64,7 +64,7 @@ export function CartProvider({ children }) {
           return [...prevItems, { ...product, quantity: 1 }];
         }
       });
-      console.log("Produk ditambahkan:", product.namaProduk);
+      //console.log("Produk ditambahkan:", product.namaProduk);
 
     } else {
       // --- Logika Gagal: Beda Toko ---
@@ -89,7 +89,7 @@ export function CartProvider({ children }) {
   
   // Fungsi untuk mengosongkan keranjang (akan kita pakai setelah checkout)
   const clearCart = () => {
-    console.log("clearCart called."); // Tambahkan log jika perlu
+    //console.log("clearCart called."); // Tambahkan log jika perlu
     setCartItems([]);
     // Pastikan TIDAK ada setCurrentStoreId(null);
   };

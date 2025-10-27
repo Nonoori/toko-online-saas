@@ -18,12 +18,11 @@ import { useAuth } from '../../context/AuthContext'; // <-- Impor Auth
 
 function StoreFrontPage() {
   const { storeId } = useParams();
-  const { addToCart } = useCart();
-  const { currentUser } = useAuth(); // <-- Dapatkan status user
-  const navigate = useNavigate();   // <-- Untuk redirect
-  const location = useLocation(); // <-- Untuk halaman asal
+  const { addToCart, cartItems, currentStoreId, clearCart } = useCart(); 
+  const { currentUser } = useAuth(); 
+  const navigate = useNavigate();   
+  const location = useLocation(); 
 
-  // ... (State storeInfo, products, loading, error tidak berubah) ...
   const [storeInfo, setStoreInfo] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -116,7 +115,7 @@ function StoreFrontPage() {
       // sessionStorage lebih cocok dari localStorage karena otomatis hilang saat tab ditutup
       try {
         sessionStorage.setItem('pendingCartItem', JSON.stringify(product));
-        console.log("Item disimpan ke sessionStorage:", product);
+        //console.log("Item disimpan ke sessionStorage:", product);
       } catch (e) {
         console.error("Gagal menyimpan item ke sessionStorage:", e);
         // Tetap lanjutkan redirect meskipun gagal simpan

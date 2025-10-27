@@ -11,23 +11,21 @@ const RAJAONGKIR_API_URL = import.meta.env.VITE_RAJAONGKIR_API_URL;
 const RAJAONGKIR_API_KEY = import.meta.env.VITE_RAJAONGKIR_API_KEY;
 
 // --- Data Placeholder Kota/Kabupaten ---
-// Ganti atau tambahkan sesuai kebutuhan awal Anda.
-// Idealnya nanti diambil dari API RajaOngkir.
-/*
+// Anda bisa menambah/mengubah daftar ini
 const placeholderCities = [
-  // Contoh beberapa kota besar di Indonesia
-  { city_id: '152', province_id: '6', province: 'DKI Jakarta', type: 'Kota', city_name: 'Jakarta Pusat', postal_code: '10110' },
-  { city_id: '151', province_id: '6', province: 'DKI Jakarta', type: 'Kota', city_name: 'Jakarta Barat', postal_code: '11110' },
-  { city_id: '22', province_id: '9', province: 'Jawa Barat', type: 'Kabupaten', city_name: 'Bandung', postal_code: '40111' },
-  { city_id: '23', province_id: '9', province: 'Jawa Barat', type: 'Kota', city_name: 'Bandung', postal_code: '40111' },
-  { city_id: '444', province_id: '10', province: 'Jawa Timur', type: 'Kota', city_name: 'Surabaya', postal_code: '60119' },
-  { city_id: '255', province_id: '13', province: 'Kalimantan Timur', type: 'Kota', city_name: 'Balikpapan', postal_code: '76111' },
-  { city_id: '278', province_id: '21', province: 'Nanggroe Aceh Darussalam (NAD)', type: 'Kota', city_name: 'Banda Aceh', postal_code: '23111' },
-  // Tambahkan kota/kabupaten lain yang relevan di sini
+    { city_id: '152', province_id: '6', province: 'DKI Jakarta', type: 'Kota', city_name: 'Jakarta Pusat', postal_code: '10110' },
+    { city_id: '151', province_id: '6', province: 'DKI Jakarta', type: 'Kota', city_name: 'Jakarta Barat', postal_code: '11110' },
+    { city_id: '153', province_id: '6', province: 'DKI Jakarta', type: 'Kota', city_name: 'Jakarta Selatan', postal_code: '12110' },
+    { city_id: '154', province_id: '6', province: 'DKI Jakarta', type: 'Kota', city_name: 'Jakarta Timur', postal_code: '13110' },
+    { city_id: '155', province_id: '6', province: 'DKI Jakarta', type: 'Kota', city_name: 'Jakarta Utara', postal_code: '14110' },
+    { city_id: '22', province_id: '9', province: 'Jawa Barat', type: 'Kabupaten', city_name: 'Bandung', postal_code: '40111' },
+    { city_id: '23', province_id: '9', province: 'Jawa Barat', type: 'Kota', city_name: 'Bandung', postal_code: '40111' },
+    { city_id: '444', province_id: '10', province: 'Jawa Timur', type: 'Kota', city_name: 'Surabaya', postal_code: '60119' },
+    { city_id: '573', province_id: '11', province: 'Jawa Tengah', type: 'Kota', city_name: 'Semarang', postal_code: '50111' },
+    { city_id: '501', province_id: '5', province: 'DI Yogyakarta', type: 'Kota', city_name: 'Yogyakarta', postal_code: '55111' },
+    // Tambahkan kota lain jika perlu
 ];
-*/
 // ------------------------------------
-
 
 function PengaturanOngkirPage() {
   const { currentUser } = useAuth();
@@ -115,47 +113,31 @@ useEffect(() => {
   }, [originProvinceId, fetchRajaOngkir]);
 
 
-/*
+// 1. Ambil Pengaturan Ongkir yang Tersimpan
+    useEffect(() => {
+        if (!currentUser || !currentUser.storeId) return;
 
-  // 1. Ambil Pengaturan Tersimpan & Daftar Provinsi Awal
-  useEffect(() => {
-    let isMounted = true; // Flag untuk mencegah update state jika komponen unmount
-    if (!currentUser || !currentUser.storeId) return;
-
-    const loadInitialData = async () => {
-      setLoadingInitial(true);
-      setError('');
-      try {
-        // Ambil pengaturan toko
-        const storeDocRef = doc(db, "stores", currentUser.storeId);
-        const docSnap = await getDoc(storeDocRef);
-        if (docSnap.exists() && isMounted) {
-          const data = docSnap.data();
-          setApiKey(data.rajaOngkirApiKey || '');
-          setOriginProvinceId(data.originProvinceId || '');
-          setOriginCityId(data.originCityId || '');
-          setOriginCityName(data.originCityName || '');
-        }
-
-        // Ambil daftar provinsi
-        setLoadingProvinces(true);
-        const provinceData = await fetchRajaOngkir('province');
-        if (provinceData && isMounted) {
-          setProvinces(provinceData);
-        }
-        setLoadingProvinces(false);
-
-      } catch (err) {
-        // Error sudah ditangani di fetchRajaOngkir atau getDoc
-         if (isMounted) setError("Gagal memuat data awal.");
-         console.error(err);
-      } finally {
-        if (isMounted) setLoadingInitial(false);
-      }
-    };
-    loadInitialData();
-    return () => { isMounted = false; }; // Cleanup function
-  }, [currentUser, fetchRajaOngkir]);
+        const fetchOngkirSettings = async () => {
+            setLoadingInitial(true); // Mulai loading awal
+            setError('');
+            try {
+                const storeDocRef = doc(db, "stores", currentUser.storeId);
+                const docSnap = await getDoc(storeDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setApiKey(data.rajaOngkirApiKey || '');
+                    setOriginCityId(data.originCityId || '');
+                    setOriginCityName(data.originCityName || ''); // Ambil nama yang tersimpan
+                }
+            } catch (err) {
+                console.error("Error fetching ongkir settings:", err);
+                setError("Gagal memuat pengaturan ongkir yang tersimpan.");
+            } finally {
+                setLoadingInitial(false); // Selesai loading awal
+            }
+        };
+        fetchOngkirSettings();
+    }, [currentUser]); // Hanya bergantung pada currentUser
 
 
   // 2. Ambil Daftar Kota saat Provinsi Dipilih
@@ -187,7 +169,7 @@ useEffect(() => {
     setOriginCityName(selectedCity ? `${selectedCity.type} ${selectedCity.city_name}` : '');
   };
 
-*/
+
 
   // 3. Handle Simpan Pengaturan
   const handleSubmit = async (e) => {

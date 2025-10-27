@@ -26,44 +26,54 @@ function CustomerProfilePage() {
   const location = useLocation(); // 2. Dapatkan location state
 
   // --- State Form Profil & Password ---
-  const [profileData, setProfileData] = useState({ namaLengkap: '', wa: '', alamat: '' });
+// --- State Form Profil (DIPERBARUI) ---
+  const [profileData, setProfileData] = useState({
+    namaLengkap: '',
+    wa: '',
+    alamatLengkap: '', // Ganti 'alamat'
+    provinsi: '',
+    kotaKabupaten: '',
+    kecamatan: '',
+    kodePos: '',
+  });
   const [newPassword, setNewPassword] = useState('');
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingPassword, setLoadingPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  // --- State Riwayat Pesanan ---
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
-  const [groupedOrders, setGroupedOrders] = useState({}); // Untuk pengelompokan
-
-  // 3. Ambil ID pesanan baru dari state navigasi (jika ada)
+  const [groupedOrders, setGroupedOrders] = useState({});
   const newOrderId = location.state?.newOrderId;
 
-  // --- useEffect Mengambil Profil (Tidak Berubah) ---
+  // --- useEffect Mengambil Profil (DIPERBARUI) ---
   useEffect(() => {
-    // ... (Logika ambil profil tetap sama) ...
     if (currentUser) {
-        setLoadingProfile(true);
-        const fetchProfile = async () => {
-            const userDocRef = doc(db, "users", currentUser.uid);
-            const docSnap = await getDoc(userDocRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                setProfileData({
-                    namaLengkap: data.namaLengkap || '',
-                    wa: data.wa || '',
-                    alamat: data.alamat || '',
-                });
-            }
-            setLoadingProfile(false);
-        };
-        fetchProfile();
-    } else {
-        setLoadingProfile(false); // Pastikan loading false jika tidak ada user
-    }
+      setLoadingProfile(true);
+      const fetchProfile = async () => {
+        const userDocRef = doc(db, "users", currentUser.uid);
+        try {
+          const docSnap = await getDoc(userDocRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            // Isi state dengan data dari Firestore, gunakan '' jika field belum ada
+            setProfileData({
+              namaLengkap: data.namaLengkap || '',
+              wa: data.wa || '',
+              alamatLengkap: data.alamatLengkap || '',
+              provinsi: data.provinsi || '',
+              kotaKabupaten: data.kotaKabupaten || '',
+              kecamatan: data.kecamatan || '',
+              kodePos: data.kodePos || '',
+            });
+          }
+        } catch (err) { console.error("Error fetching profile:", err); }
+        finally { setLoadingProfile(false); }
+      };
+      fetchProfile();
+    } else { setLoadingProfile(false); }
   }, [currentUser]);
+
 
 // --- 4. useEffect BARU untuk Mengambil Riwayat Pesanan ---
   useEffect(() => {
@@ -118,28 +128,19 @@ function CustomerProfilePage() {
     }
   }, [currentUser]); // Jalankan saat currentUser tersedia
 
-  // 4. Fungsi untuk MENYIMPAN data profil
+  /// --- Fungsi Simpan Profil (DIPERBARUI) ---
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoadingProfile(true);
-
+    setError(''); setSuccess(''); setLoadingProfile(true);
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
-      // Simpan data (Security Rules akan mengecek izin 'update')
-      await updateDoc(userDocRef, {
-        namaLengkap: profileData.namaLengkap,
-        wa: profileData.wa,
-        alamat: profileData.alamat,
-      });
+      // Simpan SEMUA field profileData ke Firestore
+      await updateDoc(userDocRef, profileData);
       setSuccess('Profil berhasil diperbarui!');
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      setError(err.message);
-    }
+    } catch (err) { console.error("Error updating profile:", err); setError(err.message); }
     setLoadingProfile(false);
   };
+
 
   // 5. Fungsi untuk MENGUBAH PASSWORD
   const handlePasswordSubmit = async (e) => {
@@ -285,21 +286,28 @@ function CustomerProfilePage() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
-        {/* Kolom Kiri: Form Profil */}
+        {/* Kolom Kiri: Form Profil (DIPERBARUI) */}
         <div style={{ flex: '1 1 400px' }}>
-          <h2>Informasi Akun</h2>
+          <h2>Informasi Akun & Pengiriman</h2>
           {currentUser && (<p>Email: <strong>{currentUser.email}</strong></p>)}
           <form onSubmit={handleProfileSubmit}>
-            {/* ... (Input Nama, WA, Alamat) ... */}
             <div style={inputGroupStyle}><label>Nama Lengkap:</label><input type="text" name="namaLengkap" value={profileData.namaLengkap} onChange={handleProfileChange} style={inputStyle} /></div>
-            <div style={inputGroupStyle}><label>Nomor WA:</label><input type="tel" name="wa" value={profileData.wa} onChange={handleProfileChange} style={inputStyle} /></div>
-            <div style={inputGroupStyle}><label>Alamat:</label><textarea name="alamat" value={profileData.alamat} onChange={handleProfileChange} style={{...inputStyle, minHeight: '80px'}} /></div>
+            <div style={inputGroupStyle}><label>Nomor WA (Aktif):</label><input type="tel" name="wa" value={profileData.wa} onChange={handleProfileChange} style={inputStyle} placeholder="Contoh: 62812..."/></div>
+            <hr style={{ margin: '20px 0'}} />
+            <h3 style={{marginBottom: '10px'}}>Alamat Pengiriman Utama</h3>
+            <div style={inputGroupStyle}><label>Alamat Lengkap (Jalan, No Rumah, RT/RW):</label><textarea name="alamatLengkap" value={profileData.alamatLengkap} onChange={handleProfileChange} style={{...inputStyle, minHeight: '60px'}} /></div>
+            <div style={inputGroupStyle}><label>Provinsi:</label><input type="text" name="provinsi" value={profileData.provinsi} onChange={handleProfileChange} style={inputStyle} /></div>
+            <div style={inputGroupStyle}><label>Kota / Kabupaten:</label><input type="text" name="kotaKabupaten" value={profileData.kotaKabupaten} onChange={handleProfileChange} style={inputStyle} /></div>
+            <div style={inputGroupStyle}><label>Kecamatan:</label><input type="text" name="kecamatan" value={profileData.kecamatan} onChange={handleProfileChange} style={inputStyle} /></div>
+            <div style={inputGroupStyle}><label>Kode Pos:</label><input type="text" name="kodePos" value={profileData.kodePos} onChange={handleProfileChange} style={inputStyle} /></div>
+
             <button type="submit" disabled={loadingProfile} style={buttonStyle('blue')}>
-              {loadingProfile ? 'Menyimpan...' : 'Simpan Profil'}
+              {loadingProfile ? 'Menyimpan...' : 'Simpan Profil & Alamat'}
             </button>
           </form>
 
-          <hr style={{ margin: '30px 0' }}/>
+        
+
 
           <h2>Ganti Password</h2>
           <form onSubmit={handlePasswordSubmit}>
